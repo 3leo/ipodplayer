@@ -1,0 +1,123 @@
+import java.awt.BorderLayout;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.awt.Image;
+import java.io.File;
+import java.io.IOException;
+import javax.sound.sampled.*;
+import javax.swing.*;
+
+public class ipod extends JFrame {
+
+    private JLabel songLabel;
+    private JLabel imageLabel;
+    private Clip clip;
+    private ImageIcon ipodIcon; // New iPod icon
+    private String[] songs = {"fortnite.wav", "griddy.wav", "turi.wav", "hamood.wav"};
+    private String[] images = {"fortnitepic.jpeg", "griddypic.jpeg", "cat.jpeg", "blob.jpg"};
+    private int currentSongIndex;
+    private boolean isPaused = false;
+
+    public ipod() {
+        setTitle("iPod - Leo Chow");
+        setSize(600, 600);
+        setDefaultCloseOperation(JFrame.EXIT_ON_CLOSE);
+        setLocationRelativeTo(null);
+        setResizable(false);
+
+        // Create the UI components
+        JPanel mainPanel = new JPanel(new BorderLayout()); // Use BorderLayout
+        songLabel = new JLabel(songs[currentSongIndex]);
+        ipodIcon = new ImageIcon("wheel.png"); // Load the wheel icon
+        Image image = ipodIcon.getImage().getScaledInstance(350, 350, 0);
+        imageLabel = new JLabel(new ImageIcon(image));
+
+        // Add the components to the panel
+        mainPanel.add(imageLabel, BorderLayout.NORTH);
+        mainPanel.add(songLabel, BorderLayout.CENTER);
+        mainPanel.add(new JLabel(ipodIcon), BorderLayout.SOUTH); // Add the iPod icon to the SOUTH
+
+        // Add a mouse listener to the panel
+        mainPanel.addMouseListener(new MouseAdapter() {
+            @Override
+            public void mouseClicked(MouseEvent e) {
+                int x = e.getX();
+                int y = e.getY();
+                System.out.println("Mouse clicked at (" + x + ", " + y + ")");
+
+                // Handle clicks at the specified coordinates
+                if (x >= 163 && x <= 213 && y >= 389 && y <= 439) { // Previous song
+                    playPreviousSong();
+                    System.out.println("Back");
+                } else if (x >= 428 && x <= 478 && y >= 389 && y <= 439) { // Next song
+                    playNextSong();
+                    System.out.println("Skip");
+                } else if (x >= 295 && x <= 345 && y >= 529 && y <= 579) { // Pause/resume
+                    pauseResumeSong();
+                    System.out.println(isPaused ? "Pause" : "Resume");
+                }
+            }
+        });
+
+        add(mainPanel);
+
+        setVisible(true);
+    }
+
+    private void playPreviousSong() {
+        currentSongIndex--;
+        if (currentSongIndex < 0) {
+            currentSongIndex = songs.length - 1;
+        }
+        songLabel.setText(songs[currentSongIndex]);
+        imageLabel.setIcon(new ImageIcon(images[currentSongIndex]));
+        if (clip != null) {
+            clip.stop();
+            clip.close();
+        }
+        playSong();
+    }
+
+    private void playNextSong() {
+        currentSongIndex++;
+        if (currentSongIndex >= songs.length) {
+            currentSongIndex = 0;
+        }
+        songLabel.setText(songs[currentSongIndex]);
+        imageLabel.setIcon(new ImageIcon(images[currentSongIndex]));
+        if (clip != null) {
+            clip.stop();
+            clip.close();
+        }
+        playSong();
+    }
+    
+        private void pauseResumeSong() {
+        if (clip == null) {
+            playSong();
+            return;
+        }
+        if (isPaused) {
+            clip.start();
+            isPaused = false;
+        } else {
+            clip.stop();
+            isPaused = true;
+        }
+    }
+
+    private void playSong() {
+        try {
+            AudioInputStream audioInputStream = AudioSystem.getAudioInputStream(new File(songs[currentSongIndex]));
+            clip = AudioSystem.getClip();
+            clip.open(audioInputStream);
+            clip.start();
+        } catch (LineUnavailableException | UnsupportedAudioFileException | IOException ex) {
+            System.out.println("Error playing audio.");
+        }
+    }
+
+    public static void main(String[] args) {
+        ipod musicPlayer = new ipod();
+    }
+}
